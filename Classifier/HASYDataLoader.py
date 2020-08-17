@@ -21,7 +21,7 @@ class ExampleDataset(Dataset):
         return (X, y)
 
     def plotitem(self, idx):
-        y = self.data.loc[idx, 'symbol_id']
+        y = self.data.loc[idx, 'latex']
         X = plt.imread(self.config['data_path'] + self.data.loc[idx, 'path'][6:])[:, :, 0]
 
         plt.imshow(X)
