@@ -13,7 +13,8 @@ class ExampleDataset(Dataset):
 
     def __getitem__(self, idx):
         y = self.data.loc[idx, 'symbol_id']
-        X = np.expand_dims(plt.imread(self.config['data_path'] + self.data.loc[idx, 'path'][6:])[:, :, 0], 2)
+        # X = np.expand_dims(plt.imread(self.config['data_path'] + self.data.loc[idx, 'path'][6:])[:, :, 0], 2)
+        X = np.expand_dims(plt.imread(self.config['data_path'] + self.data.loc[idx, 'path'])[:, :, 0], 2)
 
         if self.transforms:
             X = self.transforms(X)
@@ -22,7 +23,8 @@ class ExampleDataset(Dataset):
 
     def plotitem(self, idx):
         y = self.data.loc[idx, 'latex']
-        X = plt.imread(self.config['data_path'] + self.data.loc[idx, 'path'][6:])[:, :, 0]
+        # X = plt.imread(self.config['data_path'] + self.data.loc[idx, 'path'][6:])[:, :, 0]
+        X = plt.imread(self.config['data_path'] + self.data.loc[idx, 'path'])[:, :, 0]
 
         plt.imshow(X)
         plt.title(y)

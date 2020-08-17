@@ -4,15 +4,15 @@ import pandas as pd
 import os
 
 def download_dataset():
-    os.system('wget -P DataSets/HASY https://zenodo.org/record/259444/files/HASYv2.tar.bz2?download=1')
-    my_tar = tarfile.open('HASYv2.tar.bz2?download=1')
-    my_tar.extractall()  # specify which folder to extract to
-    my_tar.close()
-    meta_data = pd.read_csv('hasy-data-labels.csv')
+    # os.system('wget -P DataSets/HASY https://zenodo.org/record/259444/files/HASYv2.tar.bz2?download=1')
+    # my_tar = tarfile.open('HASYv2.tar.bz2?download=1')
+    # my_tar.extractall()  # specify which folder to extract to
+    # my_tar.close()
+    meta_data = pd.read_csv('/home/yuval/Projects/EquSolve/DataSets/HASY/hasy-data-labels.csv')
     return meta_data
 
 
-# meta_data = download_dataset()
+meta_data = download_dataset()
 config = {}
 config['data_path'] = '/home/yuval/Projects/EquSolve/DataSets/HASY/'
 config['train_data_path'] = 'classification-task/fold-1/train.csv'
