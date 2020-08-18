@@ -1,3 +1,5 @@
+import pandas as pd
+
 def mapper(csv_df,sym_list=None):
   # selects slice of data frame according to list of symbols
   # sym_list is a list of latex symbols (e.g. ['1','A','\pi'])
