@@ -1,22 +1,15 @@
-import tarfile
-import pandas as pd
-import numpy as np
+import os
+import datetime
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
 import torch
-import torchvision
 import torch.nn as nn
-import torch.nn.functional as F
 import torch.optim as optim
-from tqdm import tqdm
-import datetime
-import os
-
-from torchvision.transforms import transforms
 from torch.utils.data import DataLoader
+from torchvision.transforms import transforms
+from tqdm import tqdm
 
-
+# project classes:
 from Classifier.HASYDataLoader import ExampleDataset
 from Classifier.SimpleClassifier import SimpleClassifier
 
@@ -32,12 +25,10 @@ class Trainer():
         os.mkdir(self.Train_Results_Dir)
 
     def train_classifier_HASY(self):
+
         # DATA LOADER:
-
-        # if 'hasy-data-labels.csv'
-
-        train_df = pd.read_csv(self.config['data_path'] + self.config['train_data_path'])[:1024]
-        test_df = pd.read_csv(self.config['data_path'] + self.config['test_data_path'])[:1024]
+        train_df = pd.read_csv(self.config['data_path'] + self.config['train_data_path'])
+        test_df = pd.read_csv(self.config['data_path'] + self.config['test_data_path'])
 
         train_data = ExampleDataset(self.config, train_df, transforms=transforms.ToTensor())
         trainloader = DataLoader(train_data, batch_size=self.config['batch_size'], shuffle=True)
@@ -48,20 +39,16 @@ class Trainer():
         # TRAINING CONFIGURATIONS:
         net = SimpleClassifier().to(self.device)
         print(net)
+
         # loss
         self.criterion = nn.CrossEntropyLoss()
         # optimizer
         self.optimizer = optim.SGD(net.parameters(), lr=self.config['lr'], momentum=0.9)
 
         #define tracking measures:
-        self.tracking_measures = {}
-        self.tracking_measures['batch_train_loss'] = []
-        self.tracking_measures['batch_train_acc'] = []
-        self.tracking_measures['epoch_train_loss'] = []
-        self.tracking_measures['epoch_train_acc'] = []
-        self.tracking_measures['epoch_test_loss'] = []
-        self.tracking_measures['epoch_test_acc'] = []
+        self.init_tracking_measures()
 
+        # TRAINING:
         print('Start Training on {}'.format(self.device))
 
         for epochNum in range(self.config['train_epochs']):  # no. of epochs
@@ -70,11 +57,22 @@ class Trainer():
 
             self.test_epoch(net, testloader, epochNum)
 
+            self.generate_measures_plots() # update figures after each epoch to observe during training
+
         self.save_network(net)
 
         print('Done Training {} epochs'.format(epochNum+1))
 
         self.generate_measures_plots()
+
+    def init_tracking_measures(self):
+        self.tracking_measures = {}
+        self.tracking_measures['batch_train_loss'] = []
+        self.tracking_measures['batch_train_acc'] = []
+        self.tracking_measures['epoch_train_loss'] = []
+        self.tracking_measures['epoch_train_acc'] = []
+        self.tracking_measures['epoch_test_loss'] = []
+        self.tracking_measures['epoch_test_acc'] = []
 
     def generate_measures_plots(self):
         for key, value in self.tracking_measures.items():
@@ -84,6 +82,7 @@ class Trainer():
             plt.grid()
             fn = os.path.join(self.Train_Results_Dir,'{}.png'.format(key))
             plt.savefig(fn)
+            plt.close()
 
     def train_epoch(self, net, trainloader, epoch):
 
@@ -108,7 +107,7 @@ class Trainer():
             self.tracking_measures['batch_train_loss'].append(batch_loss)
 
             _, predicted = torch.max(outputs.data, 1)
-            batch_acc = (predicted == labels).sum().item()
+            batch_acc = (predicted == labels).sum().item()/len(predicted)
             epoch_acc += batch_acc
             self.tracking_measures['batch_train_acc'].append(batch_acc)
 
@@ -140,7 +139,7 @@ class Trainer():
                 epoch_loss += batch_loss
 
                 _, predicted = torch.max(outputs.data, 1)
-                batch_acc = (predicted == labels).sum().item()
+                batch_acc = (predicted == labels).sum().item()/len(predicted)
                 epoch_acc += batch_acc
 
         # print('Accuracy of the network on test images: %0.3f %%' % (
@@ -161,7 +160,8 @@ class Trainer():
     def save_network(self, net):
         fn = os.path.join(self.Train_Results_Dir, 'HASY_simpleclassifier.pth')
         saved_dict = net.state_dict()
-        saved_dict['tracking_measures'] = self.tracking_measures
+        # add custom data to the saved file:
+        saved_dict['train_measures'] = self.tracking_measures
         saved_dict['config'] = self.config
         torch.save(net.state_dict(), fn)
 
