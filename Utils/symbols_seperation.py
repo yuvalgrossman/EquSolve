@@ -66,6 +66,8 @@ def unite_symbols_with_gap(cc):
     united.bbh = (u.bby + u.bbh).max() - united.bby
     cc = cc[~ (canda + candb)]
     cc = cc.append(united, ignore_index=True)
+
+    cc = cc.sort_values('cx').reset_index(drop=True)
     return cc
 
 def plot_detections(img, cc):
@@ -76,15 +78,36 @@ def plot_detections(img, cc):
     #     plt.text(cc.cx[i], cc.cy[i], str(cc.index[i]))
     plt.show()
 
+def crop_resize(img, cc):
+# crop all bb and resize
+  cropped = []
+  for _, r in cc.iterrows():
+    I = img[int(r.bby):int(r.bby+r.bbh), int(r.bbx):int(r.bbx+r.bbw)]
+    I = pad(I)
+    cropped.append(cv2.resize(I, (32, 32)))
+
+  return cropped
+
+def pad(img):
+  h,w = img.shape
+  d = max([h,w])
+  out = np.zeros((d,d))
+  out[int(d/2-h/2):int(d/2+h/2), int(d/2-w/2):int(d/2+w/2)] = img
+  return out
+
 
 if __name__=='__main__':
     data_path = '/home/yuval/Projects/EquSolve/DataSets/hand_written_eqs/'
-    fn = data_path + 'example3.jpg'
+    fn = data_path + 'single_eq1.jpg'
     img = cv2.imread(fn, cv2.IMREAD_GRAYSCALE)
 
-    cc = find_cc(img)
+    cc = find_cc(img, 160)
     cc = unite_symbols_with_gap(cc)
     plot_detections(img, cc)
 
+    c = crop_resize((img < 160).astype('uint8'), cc)
+    fig, ax = plt.subplots(1, len(c), sharey=True)
+    [ax[i].imshow(c[i]) for i in range(len(c))]
+    plt.show()
     pass
 

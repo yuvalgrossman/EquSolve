@@ -25,24 +25,24 @@ class Detector():
         theClassifier = SimpleClassifier()
         self.theClassifier = self.load_network(theClassifier, config['model_path']).eval().to(self.device)
 
-        self.transform = transforms.Compose([transforms.ToTensor])
+        self.transform = transforms.Compose([transforms.ToTensor()])
 
-        self.class2symbol_mapper = pd.read_csv('DataSets/HASY/symbols.csv').set_index('symbol_id')['latex']
+        self.class2symbol_mapper = pd.read_csv(config['symbol_list_path']).set_index('symbol_id')['latex']
 
-        #create dir to save train results:
-        theTime = "{date:%Y-%m-%d_%H-%M-%S}".format(date=datetime.datetime.now())
-        self.Train_Results_Dir = 'DetectionResults/Detection_Results_' + theTime
-        os.mkdir(self.Train_Results_Dir)
+        # #create dir to save train results:
+        # theTime = "{date:%Y-%m-%d_%H-%M-%S}".format(date=datetime.datetime.now())
+        # self.Train_Results_Dir = 'DetectionResults/Detection_Results_' + theTime
+        # os.mkdir(self.Train_Results_Dir)
 
     def Detect(self, imgs):
 
-        imgs = torch.stack([self.transform(img) for img in imgs]).to(self.device)
+        imgs = torch.stack([self.transform(img) for img in imgs]).type(torch.FloatTensor).to(self.device)
 
         with torch.no_grad():
             outputs = self.theClassifier(imgs)
             _, predicted = torch.max(outputs.data, 1)
 
-        return [self.class2symbol_mapper[p] for p in predicted]
+        return [self.class2symbol_mapper[p.item()] for p in predicted]
 
 
     def generate_measures_plots(self):
@@ -64,7 +64,7 @@ class Detector():
 
     def load_network(self, net, model_path):
         saved_dict = torch.load(model_path)
-        net.load_state_dict(saved_dict['state_dict'])
+        net.load_state_dict(saved_dict)
         return net
         # saved_dict['train_measures'] = self.tracking_measures
         # saved_dict['config'] = self.config
