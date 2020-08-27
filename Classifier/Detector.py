@@ -16,12 +16,14 @@ from Classifier.SimpleClassifier import SimpleClassifier
 
 class Detector():
     def __init__(self, config):
+        print('init detector')
         self.config = config
         self.device = self.get_device()
+        print(self.device)
 
         #load network:
         theClassifier = SimpleClassifier()
-        self.theClassifier = self.load_network(theClassifier, config['model_path']).eval()
+        self.theClassifier = self.load_network(theClassifier, config['model_path']).eval().to(self.device)
 
         self.transform = transforms.Compose([transforms.ToTensor])
 
