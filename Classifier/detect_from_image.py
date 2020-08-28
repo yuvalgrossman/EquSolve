@@ -28,3 +28,13 @@ detected_symbols = theClassifier.Detect(c)
 [ax[i].imshow(c[i]) for i in range(len(c))]
 plt.title(detected_symbols)
 plt.show()
+
+
+def detect_symbols_from_image(img_fn):
+    img = cv2.imread(img_fn, cv2.IMREAD_GRAYSCALE)
+    cc = find_cc(img, 160)
+    cc = unite_symbols_with_gap(cc)
+    c = crop_resize((img < 160).astype('uint8'), cc)
+    return theClassifier.Detect(c)
+
+detect_symbols_from_image('/home/yuval/Projects/EquSolve/DataSets/hand_written_eqs/single_eq2.jpg')

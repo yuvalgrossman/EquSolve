@@ -8,6 +8,7 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from tqdm import tqdm
+import webbrowser
 
 # project classes:
 from Classifier.HASYDataLoader import ExampleDataset
@@ -23,6 +24,16 @@ class Trainer():
         theTime = "{date:%Y-%m-%d_%H-%M-%S}".format(date=datetime.datetime.now())
         self.Train_Results_Dir = 'TrainResults/Train_Results_' + theTime
         os.mkdir(self.Train_Results_Dir)
+
+        #create and open a webpage monitor: (we just replace one line in the html file to update the folder)
+        with open("TrainResults/monitor_base.html") as fin, open("TrainResults/monitor.html", 'w') as fout:
+            for line in fin:
+                lineout = line
+                if 'var results_folder' in line:
+                    lineout = 'var results_folder = "Train_Results_{}/"'.format(theTime)
+                fout.write(lineout)
+
+        webbrowser.open("TrainResults/monitor.html")
 
     def train_classifier_HASY(self):
 

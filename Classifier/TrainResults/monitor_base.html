@@ -1,0 +1,43 @@
+<html>
+<head>
+    <title>Train Monitor</title>
+    <meta http-equiv="refresh" content="3">
+</head>
+  <body>
+    <table>
+        <tr>
+            <td><img id="batch_train_acc" src=""/></td>
+            <td><img id="batch_train_loss" src=""/></td>
+        </tr>
+        <tr>
+            <td><img id="epoch_train_acc" src=""/></td>
+            <td><img id="epoch_train_loss" src=""/></td>
+        </tr>
+        <tr>
+            <td><img id="epoch_test_acc" src=""/></td>
+            <td><img id="epoch_test_loss" src=""/></td>
+        </tr>
+    </table>
+  </body>
+  <script>
+    var results_folder = "Train_Results_2020-08-27_18-16-22/"
+
+    var img = document.getElementById('batch_train_acc');
+    img.src = results_folder + "batch_train_acc.png"
+
+    var img = document.getElementById('epoch_train_acc');
+    img.src = results_folder + "epoch_train_acc.png"
+
+    var img = document.getElementById('epoch_test_acc');
+    img.src = results_folder + "epoch_test_acc.png"
+
+    var img = document.getElementById('batch_train_loss');
+    img.src = results_folder + "batch_train_loss.png"
+
+    var img = document.getElementById('epoch_train_loss');
+    img.src = results_folder + "epoch_train_loss.png"
+
+    var img = document.getElementById('epoch_test_loss');
+    img.src = results_folder + "epoch_test_loss.png"
+  </script>
+</html>

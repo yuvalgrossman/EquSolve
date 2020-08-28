@@ -22,7 +22,7 @@ config['data_path'] = inner_path + 'EquSolve/DataSets/HASY/'
 config['train_data_path'] = 'classification-task/fold-1/train.csv'
 config['test_data_path']  = 'classification-task/fold-1/test.csv'
 config['batch_size'] = 128
-config['train_epochs'] = 10
+config['train_epochs'] = 100
 config['lr'] = 0.001
 
 theTrainer = Trainer(config)
