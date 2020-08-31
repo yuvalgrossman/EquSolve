@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # define the neural net class
-class SimpleClassifier(nn.Module):
+class neural_net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(1, 6, 5)
@@ -22,6 +22,6 @@ class SimpleClassifier(nn.Module):
         x = self.fc3(x);
         return x
 
-if __name__ == "__main__":
-    net = SimpleClassifier()
-    print(net)
+# if __name__ == "__main__":
+#     net = SimpleClassifier()
+#     print(net)
