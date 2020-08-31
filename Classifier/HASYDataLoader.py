@@ -1,9 +1,10 @@
 from torch.utils.data import Dataset
+from PIL import Image
 import numpy as np
 import matplotlib.pyplot as plt
 
-class ExampleDataset(Dataset):
-    def __init__(self, config, csv_df, transforms=None):
+class HASYDataset(Dataset):
+    def __init__(self, config, csv_df,transforms):
         self.config = config
         self.data = csv_df
         self.transforms = transforms
@@ -13,21 +14,16 @@ class ExampleDataset(Dataset):
 
     def __getitem__(self, idx):
         y = self.data.loc[idx, 'symbol_id']
-        X = np.expand_dims(plt.imread(self.config['data_path'] + self.data.loc[idx, 'path'][6:])[:, :, 0], 2)
-        # X = np.expand_dims(plt.imread(self.config['data_path'] + self.data.loc[idx, 'path'])[:, :, 0], 2)
-
-        if self.transforms:
-            X = self.transforms(X)
-
-        return (X, y)
+        img_path = self.config['data_path'] + self.data.loc[idx, 'path']
+        img = Image.open(img_path) # load image in PIL format
+        X = self.transforms(img)   # apply transforms: resize-> tensor-> normalize
+        X_reshape = X[0].unsqueeze(-1).transpose(2,0) # reshape to [1,28,28]
+        return (X_reshape, y)
 
     def plotitem(self, idx):
         y = self.data.loc[idx, 'latex']
-        X = plt.imread(self.config['data_path'] + self.data.loc[idx, 'path'][6:])[:, :, 0]
-        # X = plt.imread(self.config['data_path'] + self.data.loc[idx, 'path'])[:, :, 0]
+        X = plt.imread(self.config['data_path'] + self.data.loc[idx, 'path'])[:, :, 0]
 
         plt.imshow(X)
         plt.title(y)
         print('img size {}'.format(X.shape))
-        # print((X[:,:,2]==X[:,:,0]).all())
-        # print((X[:,:,2]==X[:,:,1]).all())
