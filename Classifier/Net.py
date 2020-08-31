@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 
 # define the neural net class
-class neural_net(nn.Module):
+class Net(nn.Module):
     def __init__(self):
         super(Net, self).__init__()
         self.conv1 = nn.Conv2d(1, 6, 5)
