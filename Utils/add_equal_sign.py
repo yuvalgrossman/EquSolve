@@ -37,7 +37,6 @@ train_data.plotitem(idxs[10])
 #     x = make_equal_sign('diff')
 #     ax[i].imshow(x, cmap='gray')
 
-
 # produce and save to dataset:
 
 # df = pd.DataFrame(columns=hasy.columns)
@@ -49,6 +48,5 @@ for i in range(200):
 
 
 hasy.to_csv('/home/yuval/Projects/EquSolve/DataSets/HASY/hasy-data-labels.csv')
-
 
 pass

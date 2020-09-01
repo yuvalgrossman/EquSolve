@@ -12,8 +12,8 @@ config['sym_list'] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '\\alpha
 config['test_fraction'] = 0.1
 
 #training configurations:
-config['batch_size'] = 128
-config['train_epochs'] = 30
+config['batch_size'] = 32
+config['train_epochs'] = 5
 config['lr'] = 0.001
 config['momentum'] = 0.9
 
@@ -22,4 +22,3 @@ theTrainer = Trainer(config)
 tic = time.time()
 theTrainer.train_classifier_HASY()
 print('Proccess took {:.2f} m.'.format((time.time() - tic)/60))
-

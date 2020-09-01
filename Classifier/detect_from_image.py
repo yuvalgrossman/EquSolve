@@ -3,8 +3,9 @@ import numpy as np
 import matplotlib.pyplot as plt
 from Utils.symbols_seperation import *
 from Classifier.Detector import Detector
+inner_path = '/home/yuval/Projects/'
 
-data_path = '/home/yuval/Projects/EquSolve/DataSets/hand_written_eqs/'
+data_path = inner_path + 'EquSolve/DataSets/hand_written_eqs/'
 fn = data_path + 'single_eq1.jpg'
 img = cv2.imread(fn, cv2.IMREAD_GRAYSCALE)
 
@@ -18,8 +19,7 @@ fig, ax = plt.subplots(1, len(c), sharey=True)
 # plt.show()
 
 config = {}
-config['model_path'] = '/home/yuval/Projects/EquSolve/Classifier/TrainResults/Train_Results_2020-09-01_09-30-50/HASY_simpleclassifier.pth'
-# config['symbol_list_path'] = '/home/yuval/Projects/EquSolve/DataSets/HASY/symbols.csv'
+config['model_path'] = inner_path + 'EquSolve/Classifier/weights/HASY_simpleclassifier.pth'
 
 theClassifier = Detector(config)
 
@@ -37,4 +37,4 @@ def detect_symbols_from_image(img_fn):
     c = crop_resize((img < 160).astype('uint8'), cc)
     return theClassifier.Detect(c)
 
-print(detect_symbols_from_image('/home/yuval/Projects/EquSolve/DataSets/hand_written_eqs/single_eq2.jpg'))
+print(detect_symbols_from_image(inner_path + 'EquSolve/DataSets/hand_written_eqs/single_eq2.jpg'))

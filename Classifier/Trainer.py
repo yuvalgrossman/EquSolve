@@ -175,14 +175,19 @@ class Trainer():
         return device
 
     def save_network(self, net, class2sym_mapper):
-        fn = os.path.join(self.Train_Results_Dir, 'HASY_simpleclassifier.pth')
         saved_dict = {'state_dict': net.state_dict()}
         # add custom data to the saved file:
         saved_dict['train_measures'] = self.tracking_measures
         saved_dict['config'] = self.config
         saved_dict['class2sym_mapper'] = class2sym_mapper
+
+        fn = os.path.join(self.Train_Results_Dir, 'HASY_simpleclassifier.pth')
         torch.save(saved_dict, fn)
-        print('saved model in ' + fn)
+        print('save model in ' + fn)
+
+        fn = os.path.join(self.config['inner_path'], 'EquSolve', 'Classifier', 'weights', 'HASY_simpleclassifier.pth')
+        torch.save(saved_dict, fn)
+        print('save model in ' + fn)
 
 #     device = get_device()
 # train(net, trainloader)
