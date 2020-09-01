@@ -8,10 +8,11 @@ import torch.optim as optim
 from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from tqdm import tqdm
+from PIL import Image
 
 # project classes:
-from Classifier.HASYDataLoader import ExampleDataset
-from Classifier.SimpleClassifier import SimpleClassifier
+from Classifier.HASYDataset import HASYDataset
+from Classifier.Net import Net
 
 
 class Detector():
@@ -22,12 +23,14 @@ class Detector():
         print(self.device)
 
         #load network:
-        theClassifier = SimpleClassifier()
-        self.theClassifier = self.load_network(theClassifier, config['model_path']).eval().to(self.device)
+        self.theClassifier = self.load_network(config['model_path']).eval().to(self.device)
 
-        self.transform = transforms.Compose([transforms.ToTensor()])
+        self.transform = transforms.Compose([transforms.Resize([28, 28]),
+                                             transforms.ToTensor(),
+                                             transforms.Normalize(0.5, 0.5),
+                                            ])
 
-        self.class2symbol_mapper = pd.read_csv(config['symbol_list_path']).set_index('symbol_id')['latex']
+        # self.class2symbol_mapper = pd.read_csv(config['symbol_list_path']).set_index('symbol_id')['latex']
 
         # #create dir to save train results:
         # theTime = "{date:%Y-%m-%d_%H-%M-%S}".format(date=datetime.datetime.now())
@@ -36,7 +39,7 @@ class Detector():
 
     def Detect(self, imgs):
 
-        imgs = torch.stack([self.transform(img) for img in imgs]).type(torch.FloatTensor).to(self.device)
+        imgs = torch.stack([self.transform(Image.fromarray(img)) for img in imgs]).type(torch.FloatTensor).to(self.device)
 
         with torch.no_grad():
             outputs = self.theClassifier(imgs)
@@ -62,9 +65,15 @@ class Detector():
             device = 'cpu'
         return device
 
-    def load_network(self, net, model_path):
+    def load_network(self, model_path):
         saved_dict = torch.load(model_path)
-        net.load_state_dict(saved_dict)
+
+        self.class2symbol_mapper = saved_dict['class2sym_mapper']
+
+        net = Net(out_ch = len(self.class2symbol_mapper))
+
+        net.load_state_dict(saved_dict['state_dict'])
+
         return net
         # saved_dict['train_measures'] = self.tracking_measures
         # saved_dict['config'] = self.config

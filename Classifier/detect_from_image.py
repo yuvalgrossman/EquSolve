@@ -18,15 +18,15 @@ fig, ax = plt.subplots(1, len(c), sharey=True)
 # plt.show()
 
 config = {}
-config['model_path'] = '/home/yuval/Projects/EquSolve/Classifier/TrainResults/Train_Results_2020-08-27_11-28-41/HASY_simpleclassifier.pth'
-config['symbol_list_path'] = '/home/yuval/Projects/EquSolve/DataSets/HASY/symbols.csv'
+config['model_path'] = '/home/yuval/Projects/EquSolve/Classifier/TrainResults/Train_Results_2020-09-01_09-30-50/HASY_simpleclassifier.pth'
+# config['symbol_list_path'] = '/home/yuval/Projects/EquSolve/DataSets/HASY/symbols.csv'
 
 theClassifier = Detector(config)
 
 detected_symbols = theClassifier.Detect(c)
 
 [ax[i].imshow(c[i]) for i in range(len(c))]
-plt.title(detected_symbols)
+plt.suptitle(detected_symbols)
 plt.show()
 
 
@@ -37,4 +37,4 @@ def detect_symbols_from_image(img_fn):
     c = crop_resize((img < 160).astype('uint8'), cc)
     return theClassifier.Detect(c)
 
-detect_symbols_from_image('/home/yuval/Projects/EquSolve/DataSets/hand_written_eqs/single_eq2.jpg')
+print(detect_symbols_from_image('/home/yuval/Projects/EquSolve/DataSets/hand_written_eqs/single_eq2.jpg'))

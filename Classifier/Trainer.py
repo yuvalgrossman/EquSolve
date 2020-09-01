@@ -76,7 +76,7 @@ class Trainer():
 
             self.generate_measures_plots() # update figures after each epoch to observe during training
 
-        self.save_network(net)
+        self.save_network(net, dataset.class2sym_mapper)
 
         print('Done Training {} epochs'.format(epochNum+1))
 
@@ -174,13 +174,15 @@ class Trainer():
             device = 'cpu'
         return device
 
-    def save_network(self, net):
+    def save_network(self, net, class2sym_mapper):
         fn = os.path.join(self.Train_Results_Dir, 'HASY_simpleclassifier.pth')
-        saved_dict = net.state_dict()
+        saved_dict = {'state_dict': net.state_dict()}
         # add custom data to the saved file:
         saved_dict['train_measures'] = self.tracking_measures
         saved_dict['config'] = self.config
-        torch.save(net.state_dict(), fn)
+        saved_dict['class2sym_mapper'] = class2sym_mapper
+        torch.save(saved_dict, fn)
+        print('saved model in ' + fn)
 
 #     device = get_device()
 # train(net, trainloader)

@@ -13,13 +13,13 @@ config['test_fraction'] = 0.1
 
 #training configurations:
 config['batch_size'] = 128
-config['train_epochs'] = 100
-config['lr'] = 0.01
+config['train_epochs'] = 30
+config['lr'] = 0.001
 config['momentum'] = 0.9
 
 theTrainer = Trainer(config)
 
 tic = time.time()
 theTrainer.train_classifier_HASY()
-print('Proccess took {:.2f} m.'.format((time.time() - tic))/60)
+print('Proccess took {:.2f} m.'.format((time.time() - tic)/60))
 
