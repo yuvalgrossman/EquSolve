@@ -200,7 +200,7 @@ class Trainer():
         torch.save(saved_dict, fn)
         print('save model in ' + fn)
 
-    def download_dataset(config, transform):
+    def download_dataset(self,config, transform):
       if config['state'] == 'MNIST':
         import torchvision
         train_dataset = torchvision.datasets.MNIST(config['data_path'], train=True, download=True,
