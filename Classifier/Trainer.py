@@ -192,7 +192,7 @@ class Trainer():
         saved_dict['config'] = self.config
         # saved_dict['class2sym_mapper'] = class2sym_mapper
 
-        fn = os.path.join(self.Train_Results_Dir,config['state'] +'.pth')
+        fn = os.path.join(self.Train_Results_Dir,self.config['state'] +'.pth')
         torch.save(saved_dict, fn)
         print('save model in ' + fn)
 
