@@ -11,8 +11,8 @@ from tqdm import tqdm
 import webbrowser
 
 # project classes:
-from Classifier.HASYDataLoader import ExampleDataset
-from Classifier.SimpleClassifier import SimpleClassifier
+from Classifier.HASYDataset import HASYDataset
+from Classifier.Net import Net
 
 
 class Trainer():
@@ -38,23 +38,29 @@ class Trainer():
     def train_classifier_HASY(self):
 
         # DATA LOADER:
-        train_df = pd.read_csv(self.config['data_path'] + self.config['train_data_path'])
-        test_df = pd.read_csv(self.config['data_path'] + self.config['test_data_path'])
+        transform = transforms.Compose([transforms.Resize([28, 28]),
+                                        transforms.ToTensor(),
+                                        transforms.Normalize(0.5, 0.5),
+                                        ])
 
-        train_data = ExampleDataset(self.config, train_df, transforms=transforms.ToTensor())
-        trainloader = DataLoader(train_data, batch_size=self.config['batch_size'], shuffle=True)
+        dataset = HASYDataset(self.config, transforms=transform)
 
-        test_data = ExampleDataset(self.config, test_df, transforms=transforms.ToTensor())
-        testloader = DataLoader(test_data, batch_size=self.config['batch_size'], shuffle=True)
+        test_size = int(self.config['test_fraction'] * len(dataset))
+        train_size = len(dataset) - test_size
+        train_dataset, test_dataset = torch.utils.data.random_split(dataset, [train_size, test_size])
+
+        trainloader = DataLoader(train_dataset, batch_size=self.config['batch_size'], shuffle=True)
+
+        testloader = DataLoader(test_dataset, batch_size=self.config['batch_size'], shuffle=True)
 
         # TRAINING CONFIGURATIONS:
-        net = SimpleClassifier().to(self.device)
+        net = Net(out_ch = len(dataset.class2sym_mapper)).to(self.device)
         print(net)
 
         # loss
         self.criterion = nn.CrossEntropyLoss()
         # optimizer
-        self.optimizer = optim.SGD(net.parameters(), lr=self.config['lr'], momentum=0.9)
+        self.optimizer = optim.SGD(net.parameters(), lr=self.config['lr'], momentum=self.config['momentum'])
 
         #define tracking measures:
         self.init_tracking_measures()
