@@ -45,9 +45,16 @@ class Trainer():
         train_data = dataset[0]
         test_data  = dataset[1]
 
+        if self.config['state'] == 'HASY':
+          nClasses = train_data.dataset.data.symbol_id.value_counts().sort_index().tolist() # number of labels in each class
+          sample_weights = torch.tensor([1/n for n in nClasses])    
+          sampler = torch.utils.data.sampler.WeightedRandomSampler(sample_weights, len(sample_weights))   
+        else:
+          sampler = None                  
+
         # move dataset to dataloader
-        trainloader = DataLoader(train_data, batch_size=self.config['batch_size'], shuffle=True)
-        testloader = DataLoader(test_data, batch_size=self.config['batch_size'], shuffle=True)
+        trainloader = DataLoader(train_data, batch_size=self.config['batch_size'], sampler=sampler)
+        testloader = DataLoader(test_data, batch_size=self.config['batch_size'])
         
         # TRAINING CONFIGURATIONS:
         net = Net().to(self.device)
