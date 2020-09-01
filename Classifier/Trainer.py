@@ -71,7 +71,7 @@ class Trainer():
             weights_save_path = self.config['weights_path'] + 'HASY_weights.pth'
 
             net.load_state_dict(torch.load(weights_load_path)['state_dict']) # load MNIST weights
-            net.fc3 = nn.Linear(84, len(config['sym_list'])).to(self.device)   # change model's last layer
+            net.fc3 = nn.Linear(84, len(self.config['sym_list'])).to(self.device)   # change model's last layer
 
 
         # TRAINING:
