@@ -41,7 +41,7 @@ class Trainer():
 
     def train(self):
         # dataset should come as a tuple of (train_dataset,test_dataset)
-        dataset = download_dataset(self.config, self.transform)
+        dataset = self.download_dataset(self.config, self.transform)
         train_data = dataset[0]
         test_data  = dataset[1]
 
