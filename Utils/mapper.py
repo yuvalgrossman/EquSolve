@@ -8,6 +8,7 @@ def mapper(csv_df,sym_list=None):
   else:
     df = csv_df[['path','latex','symbol_id']][csv_df['latex'].isin(sym_list)].reset_index(drop=True) # slice rows according to sym_list
     latex_id_df = df.drop_duplicates().reset_index(drop=True)
-    label_map = dict(zip(sym_list, list(range(len(sym_list)))))         # create dictionary for old and new symbol_id
+    old_map = {df.latex[i]:df.symbol_id[i] for i in range(len(sym_list))}      # create dictionary for old symbol_id
+    label_map = {old_map[sym_list[i]]:i for i in range(len(sym_list))}         # create dictionary for new symbol_id
     df['symbol_id'].replace(label_map, inplace=True)
     return df
