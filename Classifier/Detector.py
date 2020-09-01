@@ -68,7 +68,7 @@ class Detector():
     def load_network(self, model_path):
         saved_dict = torch.load(model_path)
 
-        self.class2symbol_mapper = saved_dict['class2sym_mapper']
+        self.class2symbol_mapper = saved_dict['config']['sym_list']
 
         net = Net(out_ch = len(self.class2symbol_mapper))
 
