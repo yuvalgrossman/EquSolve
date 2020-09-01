@@ -34,7 +34,7 @@ class Trainer():
             for line in fin:
                 lineout = line
                 if 'var results_folder' in line:
-                    lineout = 'var results_folder = "Classifier/Train_Results_{}/"'.format(theTime)
+                    lineout = 'var results_folder = "Train_Results_{}/"'.format(theTime)
                 fout.write(lineout)
 
         webbrowser.open("Classifier/TrainResults/monitor.html")
@@ -207,13 +207,15 @@ class Trainer():
         torch.save(saved_dict, fn)
         print('save model in ' + fn)
 
-    def download_dataset(self,config, transform):
+    def download_dataset(self, config, transform):
       if config['state'] == 'MNIST':
         import torchvision
         train_dataset = torchvision.datasets.MNIST(config['data_path'], train=True, download=True,
                               transform=transform)
         test_dataset = torchvision.datasets.MNIST(config['data_path'], train=False, download=True,
-                              transform=transform)                      
+                              transform=transform)
+
+        self.config['sym_list'] = train_dataset.classes
 
 
       if config['state'] == 'HASY':

@@ -9,6 +9,7 @@ from torch.utils.data import DataLoader
 from torchvision.transforms import transforms
 from tqdm import tqdm
 from PIL import Image
+import numpy as np
 
 # project classes:
 from Classifier.HASYDataset import HASYDataset
@@ -68,7 +69,7 @@ class Detector():
     def load_network(self, model_path):
         saved_dict = torch.load(model_path)
 
-        self.class2symbol_mapper = saved_dict['config']['sym_list']
+        self.class2symbol_mapper = None if 'sym_list' not in saved_dict['config'].keys() else np.array(saved_dict['config']['sym_list'])
 
         net = Net(out_ch = len(self.class2symbol_mapper))
 

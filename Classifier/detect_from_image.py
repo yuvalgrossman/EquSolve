@@ -19,7 +19,7 @@ fig, ax = plt.subplots(1, len(c), sharey=True)
 # plt.show()
 
 config = {}
-config['model_path'] = inner_path + 'EquSolve/Classifier/weights/HASY_simpleclassifier.pth'
+config['model_path'] = inner_path + 'EquSolve/Classifier/weights/HASY_weights.pth'
 
 theClassifier = Detector(config)
 
