@@ -69,7 +69,7 @@ class Detector():
     def load_network(self, model_path):
         saved_dict = torch.load(model_path)
 
-        self.class2symbol_mapper = None if 'sym_list' not in saved_dict['config'].keys() else np.array(saved_dict['config']['sym_list'])
+        self.class2symbol_mapper = np.array(saved_dict['config']['sym_list'])
 
         net = Net(out_ch = len(self.class2symbol_mapper))
 

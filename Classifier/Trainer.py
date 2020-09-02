@@ -41,11 +41,11 @@ class Trainer():
 
     def train(self):
         # dataset should come as a tuple of (train_dataset,test_dataset)
-        dataset = self.download_dataset(self.config, self.transform)
+        dataset = self.get_dataset(self.config, self.transform)
         train_data = dataset[0]
         test_data  = dataset[1]
 
-        if self.config['state'] == 'HASY':
+        if self.config['DB'] == 'HASY' and self.config['sampling_evenly']:
           nClasses = train_data.dataset.data.symbol_id.value_counts().sort_index().tolist() # number of labels in each class
           sample_weights = torch.tensor([1/n for n in nClasses])    
           sampler = torch.utils.data.sampler.WeightedRandomSampler(sample_weights, len(sample_weights))   
@@ -57,28 +57,39 @@ class Trainer():
         testloader = DataLoader(test_data, batch_size=self.config['batch_size'])
         
         # TRAINING CONFIGURATIONS:
-        net = Net().to(self.device)
-        print(net)
+
+        # define tracking measures:
+        self.init_tracking_measures()
+
+        weights_save_path = self.config['weights_path'] + self.config['DB'] + '_weights.pth'
+
+        # apply network changes according to training state
+        if self.config['DB'] == 'HASY' and self.config['train_type'] == 'transfer_from_MNIST': # if transfer to HASY
+            weights_load_path = self.config['weights_path'] + 'MNIST_weights.pth'
+            former_model = torch.load(weights_load_path) # load MNIST weights
+
+            net = Net(out_ch=len(former_model['config']['sym_list'])).to(self.device)
+            print(net)
+            net.load_state_dict(former_model['state_dict']) # load MNIST weights
+            net.fc3 = nn.Linear(84, len(self.config['sym_list'])).to(self.device)   # change model's last layer
+
+        elif self.config['DB'] == 'HASY' and self.config['train_type'] == 'continue_HASY': # continue from former train
+            weights_load_path = self.config['weights_path'] + 'HASY_weights.pth'
+            former_model = torch.load(weights_load_path) # load former model
+
+            net = Net(out_ch=len(self.config['sym_list'])).to(self.device)
+            print(net)
+            net.load_state_dict(former_model['state_dict']) # load former weights
+
+        else: #new train
+            net = Net(out_ch=len(self.config['sym_list'])).to(self.device)
+            print(net)
 
         # loss
         self.criterion = nn.CrossEntropyLoss()
 
         # optimizer
         self.optimizer = optim.SGD(net.parameters(), lr=self.config['lr'], momentum=self.config['momentum'])
-
-        # define tracking measures:
-        self.init_tracking_measures()
-
-        # apply network changes according to training state
-        if self.config['state'] == 'MNIST': # if training on MNIST
-            weights_save_path = self.config['weights_path'] + 'MNIST_weights.pth'
-
-        if self.config['state'] == 'HASY': # if training on HASY
-            weights_load_path = self.config['weights_path'] + 'MNIST_weights.pth'
-            weights_save_path = self.config['weights_path'] + 'HASY_weights.pth'
-
-            net.load_state_dict(torch.load(weights_load_path)['state_dict']) # load MNIST weights
-            net.fc3 = nn.Linear(84, len(self.config['sym_list'])).to(self.device)   # change model's last layer
 
 
         # TRAINING:
@@ -199,7 +210,7 @@ class Trainer():
         saved_dict['config'] = self.config
         # saved_dict['class2sym_mapper'] = class2sym_mapper
 
-        fn = os.path.join(self.Train_Results_Dir,self.config['state'] +'.pth')
+        fn = os.path.join(self.Train_Results_Dir,self.config['DB'] +'.pth')
         torch.save(saved_dict, fn)
         print('save model in ' + fn)
 
@@ -207,8 +218,8 @@ class Trainer():
         torch.save(saved_dict, fn)
         print('save model in ' + fn)
 
-    def download_dataset(self, config, transform):
-      if config['state'] == 'MNIST':
+    def get_dataset(self, config, transform):
+      if config['DB'] == 'MNIST':
         import torchvision
         train_dataset = torchvision.datasets.MNIST(config['data_path'], train=True, download=True,
                               transform=transform)
@@ -218,7 +229,7 @@ class Trainer():
         self.config['sym_list'] = train_dataset.classes
 
 
-      if config['state'] == 'HASY':
+      if config['DB'] == 'HASY':
         if not os.path.exists(config['data_path'] + 'hasy-data'): # download data  
           import tarfile
           import requests    
@@ -240,7 +251,7 @@ class Trainer():
         all_df = mapper(meta_data,config['sym_list']) # slice only needed symbols
         print(all_df.latex.value_counts())
 
-        dataset = HASYDataset(config,all_df,transform) # read data into dataset
+        dataset = HASYDataset(config, all_df, transform) # read data into dataset
         train_size = int(config['HASY_train_split'] * len(dataset))
         test_size = len(dataset) - train_size
         train_dataset, test_dataset = torch.utils.data.random_split(dataset,

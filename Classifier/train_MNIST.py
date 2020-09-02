@@ -11,11 +11,11 @@ config['data_path'] = inner_path + 'EquSolve/DataSets/'
 config['weights_path'] = inner_path + 'EquSolve/Classifier/weights/'
 
 #training configurations:
-config['batch_size'] = 128
-config['train_epochs'] = 5
-config['lr'] = 0.01
+config['batch_size'] = 32
+config['train_epochs'] = 10
+config['lr'] = 0.001
 config['momentum'] = 0.9
-config['state'] = 'MNIST'
+config['DB'] = 'MNIST'
 
 
 transform = transforms.Compose([transforms.ToTensor(),
