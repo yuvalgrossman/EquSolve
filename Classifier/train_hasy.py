@@ -2,7 +2,8 @@ from Classifier.Trainer import Trainer
 from torchvision.transforms import transforms
 import time
 inner_path = '/home/yuval/Projects/'
-
+# from trains import Task
+# task = Task.init(project_name="EquSolve", task_name="train_hasy")
 
 config = {}
 # dataset configurations:
@@ -23,11 +24,12 @@ config['train_epochs'] = 300
 config['lr'] = 0.0001
 config['momentum'] = 0.9
 config['sampling_evenly'] = False
+config['augmentation'] = True
 
-transform = transforms.Compose([transforms.Resize([28,28]),
-                      transforms.ToTensor(),
-                      transforms.Normalize(0.5,0.5),
-                      ])
+transform = [ transforms.Resize([28,28]),
+              transforms.ToTensor(),
+              transforms.Normalize(0.5,0.5),
+            ]
 
 theTrainer = Trainer(config, transform)
 

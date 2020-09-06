@@ -6,7 +6,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from torchvision import datasets, transforms
+from torchvision import datasets, transforms, utils
+from sklearn.model_selection import train_test_split
 from tqdm import tqdm
 import webbrowser
 import time
@@ -120,7 +121,7 @@ class Trainer():
 
     def generate_measures_plots(self):
         for key, value in self.tracking_measures.items():
-            fig, ax = plt.subplots(figsize=(10, 5))
+            fig, ax = plt.subplots(figsize=(8, 4))
             ax.plot(value)
             ax.set_title(key)
             plt.grid()
@@ -134,9 +135,12 @@ class Trainer():
         epoch_acc = 0
         net.train()
         
-        for data in tqdm(trainloader):
+        for bNum, data in enumerate(trainloader):
             # data pixels and labels to GPU if available
             inputs, labels = data[0].to(self.device, non_blocking=True), data[1].to(self.device, non_blocking=True)
+            if epoch>=0 and bNum==0:
+                utils.save_image(inputs, self.Train_Results_Dir+'/train_example_batch.png')
+
             # set the parameter gradients to zero
             self.optimizer.zero_grad()
             outputs = net(inputs)
@@ -173,8 +177,11 @@ class Trainer():
 
         net.eval()
         with torch.no_grad():
-            for data in testloader:
+            for bNum, data in enumerate(testloader):
                 inputs, labels = data[0].to(self.device, non_blocking=True), data[1].to(self.device, non_blocking=True)
+                if epoch >= 0 and bNum == 0:
+                    utils.save_image(inputs, self.Train_Results_Dir + '/test_example_batch.png')
+
                 outputs = net(inputs)
                 loss = self.criterion(outputs, labels)
 
@@ -210,7 +217,7 @@ class Trainer():
         saved_dict['config'] = self.config
         # saved_dict['class2sym_mapper'] = class2sym_mapper
 
-        fn = os.path.join(self.Train_Results_Dir,self.config['DB'] +'.pth')
+        fn = os.path.join(self.Train_Results_Dir, self.config['DB'] +'.pth')
         torch.save(saved_dict, fn)
         print('save model in ' + fn)
 
@@ -219,12 +226,18 @@ class Trainer():
         print('save model in ' + fn)
 
     def get_dataset(self, config, transform):
+      test_transform = transforms.Compose(transform)
+      if config['augmentation']:  # train dataset, includes augmentation
+        train_transform = transforms.Compose([transforms.RandomRotation(30, fill=255, expand=True)] + transform)
+      else:
+        train_transform = transforms.Compose(transform)
+
       if config['DB'] == 'MNIST':
         import torchvision
         train_dataset = torchvision.datasets.MNIST(config['data_path'], train=True, download=True,
-                              transform=transform)
+                              transform=train_transform)
         test_dataset = torchvision.datasets.MNIST(config['data_path'], train=False, download=True,
-                              transform=transform)
+                              transform=test_transform)
 
         self.config['sym_list'] = train_dataset.classes
 
@@ -251,10 +264,14 @@ class Trainer():
         all_df = mapper(meta_data,config['sym_list']) # slice only needed symbols
         print(all_df.latex.value_counts())
 
-        dataset = HASYDataset(config, all_df, transform) # read data into dataset
-        train_size = int(config['HASY_train_split'] * len(dataset))
-        test_size = len(dataset) - train_size
-        train_dataset, test_dataset = torch.utils.data.random_split(dataset,
-                                                                    [train_size, test_size]) # split dataset to train and test
+        # split dataframe into train test (before creating the dataset, so we can use different transform):
+        train_df, test_df = train_test_split(all_df, train_size=config['HASY_train_split'], random_state=42, shuffle=True)
+
+        train_dataset = HASYDataset(config, train_df.reset_index(), train_transform) # read data into dataset
+        test_dataset = HASYDataset(config, test_df.reset_index(), test_transform)  # read data into dataset
+        # train_size = int( * len(dataset))
+        # test_size = len(dataset) - train_size
+        # train_dataset, test_dataset = torch.utils.data.random_split(dataset,
+        #                                                             [train_size, test_size]) # split dataset to train and test
 
       return (train_dataset,test_dataset)

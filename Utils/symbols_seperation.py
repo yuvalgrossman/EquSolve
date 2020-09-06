@@ -84,13 +84,13 @@ def crop_resize(img, cc):
   for _, r in cc.iterrows():
     I = img[int(r.bby):int(r.bby+r.bbh), int(r.bbx):int(r.bbx+r.bbw)]
     I = pad(I)
-    cropped.append(cv2.resize(I, (32, 32)))
+    cropped.append(cv2.resize(I, (28, 28)))
 
   return cropped
 
-def pad(img):
+def pad(img, margin=3):
   h,w = img.shape
-  d = max([h,w])
+  d = max([h,w]) + margin
   out = np.zeros((d,d))
   out[int(d/2-h/2):int(d/2+h/2), int(d/2-w/2):int(d/2+w/2)] = img
   return out

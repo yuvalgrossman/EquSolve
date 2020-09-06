@@ -1,7 +1,7 @@
 <html>
 <head>
     <title>Train Monitor</title>
-    <meta http-equiv="refresh" content="3">
+    <meta http-equiv="refresh" content="5">
 </head>
   <body>
     <table>
@@ -17,10 +17,20 @@
             <td><img id="epoch_test_acc" src=""/></td>
             <td><img id="epoch_test_loss" src=""/></td>
         </tr>
+        <tr>
+            <td><img id="train_example_batch" src=""/></td>
+            <td><img id="test_example_batch" src=""/></td>
+        </tr>
     </table>
   </body>
   <script>
     var results_folder = "Train_Results_2020-08-27_18-16-22/"
+
+    var img = document.getElementById('train_example_batch');
+    img.src = results_folder + "train_example_batch.png"
+
+    var img = document.getElementById('test_example_batch');
+    img.src = results_folder + "test_example_batch.png"
 
     var img = document.getElementById('batch_train_acc');
     img.src = results_folder + "batch_train_acc.png"
