@@ -6,14 +6,14 @@ from Classifier.Detector import Detector
 inner_path = '/home/yuval/Projects/'
 
 data_path = inner_path + 'EquSolve/DataSets/hand_written_eqs/'
-fn = data_path + 'single_eq5.png'
+fn = data_path + 'single_eq1.jpg'
 img = cv2.imread(fn, cv2.IMREAD_GRAYSCALE)
 
-cc = find_cc(img, 140)
-cc = unite_symbols_with_gap(cc)
+threshold = 150
+cc = find_cc(img, threshold, unite=True)
 plot_detections(img, cc)
 
-c = crop_resize((img < 140).astype('uint8'), cc)
+c = crop_resize((img < threshold).astype('uint8'), cc)
 fig, ax = plt.subplots(1, len(c), sharey=True)
 [ax[i].imshow(c[i]) for i in range(len(c))]
 # plt.show()

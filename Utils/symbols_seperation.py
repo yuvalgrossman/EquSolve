@@ -37,7 +37,7 @@ def cv_blobber():
 
 # cv_blobber()
 
-def find_cc(img, threshold=140):
+def find_cc(img, threshold=140, unite=True):
 
     pMask = img < threshold
     retval, labels, stats, centroids = cv2.connectedComponentsWithStats(pMask.astype('int8'))
@@ -46,9 +46,19 @@ def find_cc(img, threshold=140):
               'bbw': stats[1:, 2], 'bbh': stats[1:, 3], 'area': stats[1:, 4]})
     filter = cc.area > 10
     filter *= cc.bbw > 5
+    filter *= cc.bbw < img.shape[1]*0.2 # bbox should not exceed 20% of the image width
     filter *= cc.bbh > 5
     cc = cc[filter]
     cc = cc.sort_values('cx').reset_index(drop=True)
+
+    if unite:
+        cc = unite_symbols_with_gap(cc)
+        filter = cc.bbw < img.shape[1]*0.2 # bbox should not exceed 20% of the image width
+        cc = cc[filter]
+        cc = cc.sort_values('cx').reset_index(drop=True)
+
+    #TODO: add IoU filteration
+
     return cc
 
 def unite_symbols_with_gap(cc):
@@ -67,7 +77,6 @@ def unite_symbols_with_gap(cc):
     cc = cc[~ (canda + candb)]
     cc = cc.append(united, ignore_index=True)
 
-    cc = cc.sort_values('cx').reset_index(drop=True)
     return cc
 
 def plot_detections(img, cc):
