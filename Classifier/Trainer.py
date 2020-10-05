@@ -175,7 +175,7 @@ class Trainer():
         epoch_loss = 0
         epoch_acc = 0
         tp = {x:0 for x in self.config['sym_list']}
-        tpfp = tp
+        tpfp = tp.copy()
         
         net.eval()
         with torch.no_grad():
@@ -197,11 +197,12 @@ class Trainer():
                 batch_acc = (predicted == labels).sum().item()/len(predicted)
                 epoch_acc += batch_acc
                 
+              
                 for label in labels.unique().tolist():
-                  tp[self.config['sym_list'][label]] += sum(predicted[labels==label]==
-                                         labels[labels==label])
-                  tpfp[self.config['sym_list'][label]] += sum(labels==label)
-
+                  l = labels==label
+                  tp[self.config['sym_list'][label]] += sum(predicted[l] == label)
+                  tpfp[self.config['sym_list'][label]] += sum(l)
+                  
         # print('Accuracy of the network on test images: %0.3f %%' % (
         #         100 * correct / total))
         epoch_loss /= len(testloader)
@@ -210,10 +211,10 @@ class Trainer():
         self.tracking_measures['epoch_test_loss'].append(epoch_loss)
         self.tracking_measures['epoch_test_acc'].append(epoch_acc)
         
+        
         for label in self.config['sym_list']:
           class_acc = torch.true_divide(100*tp[label],tpfp[label])
-          print('Test acc for class {} = {}% ({}/{})'.format(label,class_acc,tp[label],tpfp[label]))
-
+          print('Test acc for {} = {:.3f}% ({}/{})'.format(label,class_acc,tp[label],tpfp[label]))
 
     def get_device(self):
         if torch.cuda.is_available():
@@ -251,7 +252,7 @@ class Trainer():
         test_dataset = torchvision.datasets.MNIST(config['data_path'], train=False, download=True,
                               transform=test_transform)
 
-        self.config['sym_list'] = train_dataset.classes
+        self.config['sym_list'] = list(range(10))
 
 
       if config['DB'] == 'HASY':
