@@ -69,11 +69,11 @@ class Trainer():
             weights_load_path = self.config['weights_path'] + 'MNIST_weights.pth'
             former_model = torch.load(weights_load_path) # load MNIST weights
 
-            net = Net(out_ch=len(former_model['config']['sym_list'])).to(self.device)
-            print(net)
+            net = Net(out_ch=len(former_model['config']['sym_list'])).to(self.device) 
             net.load_state_dict(former_model['state_dict']) # load MNIST weights
             net.fc3 = nn.Linear(84, len(self.config['sym_list'])).to(self.device)   # change model's last layer
-
+            print(net)
+            
         elif self.config['DB'] == 'HASY' and self.config['train_type'] == 'continue_HASY': # continue from former train
             weights_load_path = self.config['weights_path'] + 'HASY_weights.pth'
             former_model = torch.load(weights_load_path) # load former model
