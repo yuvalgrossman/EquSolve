@@ -47,7 +47,7 @@ class Trainer():
         test_data  = dataset[1]
 
         if self.config['DB'] == 'HASY' and self.config['sampling_evenly']:
-          nClasses = train_data.dataset.data.symbol_id.value_counts().sort_index().tolist() # number of labels in each class
+          nClasses = train_data.data.symbol_id.value_counts().sort_index().tolist() # number of labels in each class
           sample_weights = torch.tensor([1/n for n in nClasses])    
           sampler = torch.utils.data.sampler.WeightedRandomSampler(sample_weights, len(sample_weights))   
         else:
