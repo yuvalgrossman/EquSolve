@@ -16,11 +16,13 @@ config['train_epochs'] = 10
 config['lr'] = 0.001
 config['momentum'] = 0.9
 config['DB'] = 'MNIST'
+config['augmentation'] = False
 
 
-transform = transforms.Compose([transforms.ToTensor(),
-                              transforms.Normalize(0.5,0.5),
-                              ])
+
+transform = [transforms.ToTensor(),
+             transforms.Normalize(0.5,0.5),
+             ]
 
 theTrainer = Trainer(config, transform)
 

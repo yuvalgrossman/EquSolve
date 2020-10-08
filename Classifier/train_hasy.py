@@ -19,16 +19,17 @@ config['HASY_train_split'] = 0.9
 config['train_type'] = 'transfer_from_MNIST'
 # config['train_type'] = 'continue_HASY'
 # config['train_type'] = 'new'
-config['batch_size'] = 16
+config['batch_size'] = 1024
 config['train_epochs'] = 300
-config['lr'] = 0.0001
-config['momentum'] = 0.9
+config['lr'] = 0.01
+config['momentum'] = 0
 config['sampling_evenly'] = False
 config['augmentation'] = True
 
-transform = [ transforms.Resize([28,28]),
+transform = [ transforms.Resize([28, 28]),
               transforms.ToTensor(),
-              transforms.Normalize(0.5,0.5),
+              transforms.Normalize(0.5, 0.5),
+              transforms.Lambda(lambda x: 1-x) #make the figures white and the background black
             ]
 
 theTrainer = Trainer(config, transform)
