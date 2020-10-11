@@ -6,7 +6,7 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from torchvision import transforms, utils
+from torchvision import transforms as T, utils
 from torchvision.datasets import MNIST
 from tqdm import tqdm
 import webbrowser
@@ -50,10 +50,11 @@ class Trainer():
             if self.config['DB'] == 'HASY':
                 nClasses = train_data.data.symbol_id.value_counts().sort_index().tolist() # number of labels in each class
             if self.config['DB'] == 'Unified':
-                mapper = train_data.hasy.data.symbol_id.value_counts().to_dict()
-                nClasses = [6000]*len(train_data.mnist) + [mapper[x] for x in train_data.hasy.data.symbol_id.values]
-            sample_weights = torch.tensor([1/n for n in nClasses])
-            sampler = torch.utils.data.sampler.WeightedRandomSampler(weights=sample_weights, num_samples=self.config['batch_size'])
+                # mnist_m = train_data.mnist.targets.unique(return_counts=True)[1]
+                hasy_m = train_data.hasy.data.symbol_id.value_counts().to_dict()
+                nClasses = [6000]*len(train_data.mnist) + [hasy_m[x] for x in train_data.hasy.data.symbol_id.values]
+            sample_weights = 1/torch.FloatTensor(nClasses)
+            sampler = torch.utils.data.sampler.WeightedRandomSampler(weights=sample_weights, num_samples=len(train_data))
         else:
             sampler = None
 
@@ -96,6 +97,7 @@ class Trainer():
         # optimizer
         self.optimizer = optim.SGD(net.parameters(), lr=self.config['lr'], momentum=self.config['momentum'])
 
+        scheduler = optim.lr_scheduler.ReduceLROnPlateau(self.optimizer, patience=3)
 
         # TRAINING:
         print('Start Training on {}'.format(self.device))
@@ -105,6 +107,8 @@ class Trainer():
             net = self.train_epoch(net, trainloader, epochNum)
 
             self.test_epoch(net, testloader, epochNum)
+
+            scheduler.step(self.tracking_measures['epoch_test_loss'])
 
             self.generate_measures_plots() # update figures after each epoch to observe during training
 
@@ -243,11 +247,11 @@ class Trainer():
         print('save model in ' + fn)
 
     def get_dataset(self, config, transform):
-      test_transform = transforms.Compose(transform)
+      test_transform = T.Compose(transform)
       if config['augmentation']:  # train dataset, includes augmentation
-        train_transform = transforms.Compose([transforms.RandomRotation(30, fill=255, expand=True)] + transform)
+        train_transform = T.Compose([T.RandomRotation(30, fill=255, expand=True), T.RandomHorizontalFlip(), T.RandomVerticalFlip()] + transform)
       else:
-        train_transform = transforms.Compose(transform)
+        train_transform = T.Compose(transform)
 
 
       if config['DB'] == 'MNIST':
@@ -260,7 +264,7 @@ class Trainer():
         test_dataset = HASYDataset(config, download=True, train=False, transform=test_transform)
 
       if config['DB'] == 'Unified':
-        mnist_train_dataset = MNIST(config['data_path'], train=True, download=True, transform=train_transform)
+        mnist_train_dataset = MNIST(config['data_path'], train=True, download=True, transform=test_transform) # no augmentation to mnist
         mnist_test_dataset = MNIST(config['data_path'], train=False, download=True, transform=test_transform)
 
         hasy_train_dataset = HASYDataset(config, download=True, train=True, transform=train_transform)

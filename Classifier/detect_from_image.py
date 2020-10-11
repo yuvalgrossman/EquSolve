@@ -6,10 +6,10 @@ from Classifier.Detector import Detector
 inner_path = '/home/yuval/Projects/'
 
 data_path = inner_path + 'EquSolve/DataSets/hand_written_eqs/'
-fn = data_path + 'single_eq1.jpg'
+fn = data_path + 'single_eq3.jpg'
 img = cv2.imread(fn, cv2.IMREAD_GRAYSCALE)
 
-threshold = 150
+threshold = 130
 cc = find_cc(img, threshold, unite=True)
 plot_detections(img, cc)
 
@@ -19,7 +19,7 @@ fig, ax = plt.subplots(1, len(c), sharey=True)
 # plt.show()
 
 config = {}
-config['model_path'] = inner_path + 'EquSolve/Classifier/weights/HASY_weights.pth'
+config['model_path'] = inner_path + 'EquSolve/Classifier/weights/Unified_weights.pth'
 
 theClassifier = Detector(config)
 
