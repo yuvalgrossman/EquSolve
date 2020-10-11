@@ -108,7 +108,7 @@ class Trainer():
 
             self.test_epoch(net, testloader, epochNum)
 
-            scheduler.step(self.tracking_measures['epoch_test_loss'])
+            scheduler.step(self.tracking_measures['epoch_test_loss'][-1])
 
             self.generate_measures_plots() # update figures after each epoch to observe during training
 
@@ -222,7 +222,7 @@ class Trainer():
         
         for label in self.config['sym_list']:
           class_acc = torch.true_divide(100*tp[label],tpfp[label])
-          print('Test acc for {} = {:.3f}% ({}/{})'.format(label,class_acc,tp[label],tpfp[label]))
+          print('Test acc for {}: {:.3f}% ({}/{})'.format(label,class_acc,tp[label],tpfp[label]))
 
     def get_device(self):
         if torch.cuda.is_available():
@@ -248,8 +248,8 @@ class Trainer():
 
     def get_dataset(self, config, transform):
       test_transform = T.Compose(transform)
-      if config['augmentation']:  # train dataset, includes augmentation
-        train_transform = T.Compose([T.RandomRotation(30, fill=255, expand=True), T.RandomHorizontalFlip(), T.RandomVerticalFlip()] + transform)
+      if config['augmentation'] is not None:  # train dataset, includes augmentation
+        train_transform = T.Compose(config['augmentation'] + transform)
       else:
         train_transform = T.Compose(transform)
 

@@ -48,7 +48,7 @@ class HASYDataset(Dataset):
         img = Image.open(img_path) # load image in PIL format
         X = self.transform(img)   # apply transforms: resize-> tensor-> normalize
         X = X[0].unsqueeze(0) # reshape to [1,28,28]
-        X = 1-X #make the figures white and the background black
+        X = 1-X -1 #make the figures white and the background black as in MNIST (the 1-x reverse the image and shift the range from [-1,1] to [0,2], hence the additional -1)
         return (X, y)
 
     def plotitem(self, idx):

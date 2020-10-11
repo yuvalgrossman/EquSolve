@@ -93,7 +93,8 @@ def crop_resize(img, cc):
   for _, r in cc.iterrows():
     I = img[int(r.bby):int(r.bby+r.bbh), int(r.bbx):int(r.bbx+r.bbw)]
     I = pad(I)
-    cropped.append(cv2.resize(I, (28, 28)))
+    # I = cv2.resize(I, (28, 28))
+    cropped.append(I)
 
   return cropped
 

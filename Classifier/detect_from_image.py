@@ -11,7 +11,7 @@ img = cv2.imread(fn, cv2.IMREAD_GRAYSCALE)
 
 threshold = 130
 cc = find_cc(img, threshold, unite=True)
-plot_detections(img, cc)
+# plot_detections(img, cc)
 
 c = crop_resize((img < threshold).astype('uint8'), cc)
 fig, ax = plt.subplots(1, len(c), sharey=True)

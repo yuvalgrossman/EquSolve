@@ -1,5 +1,7 @@
 from Classifier.Trainer import Trainer
-from torchvision.transforms import transforms
+from torchvision.transforms import transforms as T
+from albumentations.augmentations import transforms as A
+from Utils.ImageTransforms import GaussianSmoothing, Brightenn, Contraster
 import time
 inner_path = '/home/yuval/Projects/'
 # from trains import Task
@@ -24,15 +26,22 @@ config['train_epochs'] = 20
 config['lr'] = 0.001
 config['momentum'] = 0
 config['sampling_evenly'] = True
-config['augmentation'] = True
+config['augmentation'] = [T.RandomRotation(15, fill=255, expand=True),
+                          T.RandomHorizontalFlip(),
+                          T.RandomVerticalFlip(),
+                          Brightenn(0.4),
+                          Contraster(10),
+                          # GaussianSmoothing([0, 7])
+                          ]
+# config['augmentation'] = None
 
 #debugging conf:
 config['open_browser'] = True
 
-transform = [ transforms.Resize([28, 28]),
-              transforms.ToTensor(),
-              transforms.Normalize(0.5, 0.5),
-              # transforms.Lambda(lambda x: 1-x) #make the figures white and the background black
+transform = [ T.Resize([28, 28]),
+              T.ToTensor(),
+              T.Normalize(0.5, 0.5),
+              # transforms.Lambda(lambda x: 1-x) #make the figures white and the background black - happens inside dataset
             ]
 
 theTrainer = Trainer(config, transform)
