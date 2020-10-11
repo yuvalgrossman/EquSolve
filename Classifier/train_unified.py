@@ -7,24 +7,27 @@ inner_path = '/home/yuval/Projects/'
 
 config = {}
 # dataset configurations:
-config['DB'] = 'HASY'
+config['DB'] = 'Unified'
 config['inner_path'] = inner_path
 config['data_path'] = inner_path + 'EquSolve/DataSets/'
 config['weights_path'] = inner_path + 'EquSolve/Classifier/weights/'
 config['dataset_path'] = inner_path + 'EquSolve/DataSets/HASY/hasy-data-labels.csv'
-config['sym_list'] = ['0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '=', '+', '-', 'x']
+config['sym_list'] = ['=', '+', '-', 'x']
 config['HASY_train_split'] = 0.9
 
 #training configurations:
-config['train_type'] = 'transfer_from_MNIST'
+# config['train_type'] = 'transfer_from_MNIST'
 # config['train_type'] = 'continue_HASY'
-# config['train_type'] = 'new'
-config['batch_size'] = 1024
+config['train_type'] = 'new'
+config['batch_size'] = 32
 config['train_epochs'] = 300
-config['lr'] = 0.01
+config['lr'] = 0.001
 config['momentum'] = 0
-config['sampling_evenly'] = False
+config['sampling_evenly'] = True
 config['augmentation'] = True
+
+#debugging conf:
+config['open_browser'] = True
 
 transform = [ transforms.Resize([28, 28]),
               transforms.ToTensor(),

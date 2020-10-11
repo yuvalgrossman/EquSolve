@@ -6,8 +6,8 @@ import torch
 import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader
-from torchvision import datasets, transforms, utils
-from sklearn.model_selection import train_test_split
+from torchvision import transforms, utils
+from torchvision.datasets import MNIST
 from tqdm import tqdm
 import webbrowser
 import time
@@ -15,8 +15,9 @@ import pdb
 
 # project classes:
 from Classifier.HASYDataset import HASYDataset
+from Classifier.UnifiedDataset import UnifiedDataset
 from Classifier.Net import Net
-from Utils.mapper import mapper
+
 
 
 class Trainer():
@@ -38,20 +39,23 @@ class Trainer():
                     lineout = 'var results_folder = "Train_Results_{}/"'.format(theTime)
                 fout.write(lineout)
 
-        webbrowser.open("Classifier/TrainResults/monitor.html")
+        if config['open_browser']:
+            webbrowser.open("Classifier/TrainResults/monitor.html")
 
     def train(self):
         # dataset should come as a tuple of (train_dataset,test_dataset)
-        dataset = self.get_dataset(self.config, self.transform)
-        train_data = dataset[0]
-        test_data  = dataset[1]
+        train_data, test_data = self.get_dataset(self.config, self.transform)
 
-        if self.config['DB'] == 'HASY' and self.config['sampling_evenly']:
-          nClasses = train_data.data.symbol_id.value_counts().sort_index().tolist() # number of labels in each class
-          sample_weights = torch.tensor([1/n for n in nClasses])    
-          sampler = torch.utils.data.sampler.WeightedRandomSampler(sample_weights, len(sample_weights))   
+        if self.config['sampling_evenly']:
+            if self.config['DB'] == 'HASY':
+                nClasses = train_data.data.symbol_id.value_counts().sort_index().tolist() # number of labels in each class
+            if self.config['DB'] == 'Unified':
+                mapper = train_data.hasy.data.symbol_id.value_counts().to_dict()
+                nClasses = [6000]*len(train_data.mnist) + [mapper[x] for x in train_data.hasy.data.symbol_id.values]
+            sample_weights = torch.tensor([1/n for n in nClasses])
+            sampler = torch.utils.data.sampler.WeightedRandomSampler(weights=sample_weights, num_samples=self.config['batch_size'])
         else:
-          sampler = None                  
+            sampler = None
 
         # move dataset to dataloader
         trainloader = DataLoader(train_data, batch_size=self.config['batch_size'], sampler=sampler)
@@ -245,46 +249,25 @@ class Trainer():
       else:
         train_transform = transforms.Compose(transform)
 
-      if config['DB'] == 'MNIST':
-        import torchvision
-        train_dataset = torchvision.datasets.MNIST(config['data_path'], train=True, download=True,
-                              transform=train_transform)
-        test_dataset = torchvision.datasets.MNIST(config['data_path'], train=False, download=True,
-                              transform=test_transform)
 
+      if config['DB'] == 'MNIST':
+        train_dataset = MNIST(config['data_path'], train=True, download=True, transform=train_transform)
+        test_dataset = MNIST(config['data_path'], train=False, download=True, transform=test_transform)
         self.config['sym_list'] = list(range(10))
 
-
       if config['DB'] == 'HASY':
-        if not os.path.exists(config['data_path'] + 'hasy-data'): # download data  
-          import tarfile
-          import requests    
-          url = 'https://zenodo.org/record/259444/files/HASYv2.tar.bz2?download=1'
-          out = config['data_path'] + 'HASYv2.tar'
-          print('Downloading HASY dataset')
-          r = requests.get(url)
-          with open(out, 'wb') as f:
-              f.write(r.content)
-          
-          my_tar = tarfile.open(out)
-          print('Extracting dataset')
-          my_tar.extractall(config['data_path'])  # specify which folder to extract to
-          my_tar.close()
-          print('Done extracting')
-          
-        meta_data = pd.read_csv(config['data_path'] + 'hasy-data-labels.csv')
-        # here we concatenate all_df with equal sign df
-        all_df = mapper(meta_data,config['sym_list']) # slice only needed symbols
-        print(all_df.latex.value_counts())
+        train_dataset = HASYDataset(config, download=True, train=True, transform=train_transform)
+        test_dataset = HASYDataset(config, download=True, train=False, transform=test_transform)
 
-        # split dataframe into train test (before creating the dataset, so we can use different transform):
-        train_df, test_df = train_test_split(all_df, train_size=config['HASY_train_split'], random_state=42, shuffle=True)
+      if config['DB'] == 'Unified':
+        mnist_train_dataset = MNIST(config['data_path'], train=True, download=True, transform=train_transform)
+        mnist_test_dataset = MNIST(config['data_path'], train=False, download=True, transform=test_transform)
 
-        train_dataset = HASYDataset(config, train_df.reset_index(), train_transform) # read data into dataset
-        test_dataset = HASYDataset(config, test_df.reset_index(), test_transform)  # read data into dataset
-        # train_size = int( * len(dataset))
-        # test_size = len(dataset) - train_size
-        # train_dataset, test_dataset = torch.utils.data.random_split(dataset,
-        #                                                             [train_size, test_size]) # split dataset to train and test
+        hasy_train_dataset = HASYDataset(config, download=True, train=True, transform=train_transform)
+        hasy_test_dataset = HASYDataset(config, download=True, train=False, transform=test_transform)
+
+        train_dataset = UnifiedDataset(mnist_train_dataset, hasy_train_dataset)
+        test_dataset = UnifiedDataset(mnist_test_dataset, hasy_test_dataset)
+        self.config['sym_list'] = [str(x) for x in range(10)] + self.config['sym_list']
 
       return (train_dataset,test_dataset)
